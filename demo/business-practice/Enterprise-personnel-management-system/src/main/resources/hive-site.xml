@@ -1,0 +1,8 @@
+  <configuration>
+
+      <property>
+          <name>hive.metastore.uris</name>
+          <value>thrift://cdh6.ygbx.com:9083</value>
+      </property>
+    
+  </configuration>
