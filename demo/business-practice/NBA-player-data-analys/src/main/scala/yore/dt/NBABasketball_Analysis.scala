@@ -6,13 +6,12 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.StatCounter
 
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.Row
 
 import scala.collection.Map
 
@@ -42,12 +41,12 @@ object NBABasketball_Analysis {
       .setAppName("NBA-player-data-analys")
     val spark = SparkSession.builder().config(conf)
       .config("spark.sql.warehouse.dir", "spark-warehouse")
-      .enableHiveSupport()
+//      .enableHiveSupport()
       .getOrCreate()
     val sc = spark.sparkContext
 
     import spark.implicits._
-//    import org.apache.spark.sql.functions._
+    import org.apache.spark.sql.functions._
 
     // Delete if the tmp directory exists
     FileSystem.get(new Configuration()).delete(new Path(data_tmp), true)
@@ -87,12 +86,132 @@ object NBABasketball_Analysis {
     )
     println("NBA球员数据统计维度：")
     txtStart.foreach(println)
+    // 基础数据项，需要在集群中使用，因此会在后面广播出去
     val aggStats : Map[String, Double] = processStats(filteredStats, txtStart).collectAsMap()
+    println("NBA球员基础数据项aggStats MAP映射集：")
+
+    /**
+      * (2018_PF_stdev, 52.77921146501997)
+      * (2012_FG%_max, 1.0)
+      * (2013_2P_max, 706.0)
+      * (2014_STL_max, 163.0)
+      * (2014_FG_avg, 160.77880184331815)
+      * (2015_PTS_stdev, 443.60096103812543)
+      * (2014_3P%_min, 0.0)
+      * (2015_2PA_max, 1238.0)
+      * (2015_TRB_count, 578.0)
+      * (2017_3PA_stdev, 141.37791737920563)
+      * (2016_FGA_max, 1941.0)
+      * (2018_TOV_max, 304.0)
+      * (2017_FTA_avg, 87.19126506024094)
+      * (2012_ORB_max, 310.0)
+      * (2012_2P%_min, 0.0)
+      * (2013_BLK_stdev, 28.635408829704502)
+      * (2016_2PA_min, 0.0)
+      * (2012_3PA_count, 573.0)
+      * (2015_3P%_count, 578.0)
+      * (2012_2PA_avg, 283.870855148342)
+      */
+    aggStats.take(20).foreach{
+      case (k, v) => println(" (" + k + ", "  + v +")")
+    }
+    // 将RDD转换成map结构进行广播
+    val broadcastStats = sc.broadcast(aggStats)
 
 
+    /**
+      * NBA球员数据每年标准分Z-Score计算
+      */
+    // 解析统计，跟踪权重
+    val txtStatZ = Array( "FG", "TF", "3P", "TRB", "AST", "STL", "BLK", "TOV", "PTS%")
+    val zStats : Map[String, Double] = processStats(filteredStats, txtStatZ, broadcastStats.value).collectAsMap()
+    println("\nNBA球员Z-Score标准分zStats MAP映射集：")
+
+    /**
+      * (2015_TRB_count, 578.0)
+      * (2015_PTS%_avg, -8.428587688902311E-16)
+      * (2018_TOV_max, 0.9605873714226074)
+      * (2013_BLK_stdev, 1.0000000000000002)
+      * (2017_TF_min, -59.55420180722903)
+      * (2014_FG_avg, 7.479979964653161)
+      * (2014_STL_max, 4.089815633960388)
+      * (2012_TF_stdev, 19.1040519962441)
+      * (2018_AST_avg, 1.0412677664550785E-15)
+      * (2012_FG_stdev, 27.126385282680246)
+      * (2018_BLK_max, 6.354678873886561)
+      * (2013_TOV_avg, -2.42861286636753E-16)
+      * (2012_FG_count, 573.0)
+      * (2012_AST_max, 4.730276578594265)
+      * (2018_FG_max, 139.84492977099265)
+      * (2016_PTS%_count, 595.0)
+      * (2013_AST_stdev, 0.9999999999999999)
+      * (2015_TRB_stdev, 1.0000000000000004)
+      * (2012_TF_count, 573.0)
+      * (2012_TRB_min, -1.0037328834614843)
+      */
+    zStats.take(20).foreach{
+      case (k, v) => println(" (" + k + ", "  + v +")")
+    }
+    // 将RDD转换为map结构，并使用广播到Executor
+    val zBroadcastStats = sc.broadcast(zStats)
 
 
+    /**
+      * NBA球员数据每年归一化计算
+      */
+    // 解析统计，进行归一化处理
+    val nStats : RDD[BballData] = filteredStats.map(x => bbParse(x, broadcastStats.value, zBroadcastStats.value))
+    // 转换RDD为RDD[Row]，可以将其再转换为dataframe
+    val nPlayer : RDD[Row] = nStats.map(x =>{
+      val nPlayerRow : Row = Row.fromSeq(Array(x.name, x.year, x.age, x.position, x.team, x.gp, x.team, x.gs, x.mp)
+        ++ x.stats ++ x.statsZ ++ Array(x.valueZ) ++ x.statsN ++ Array(x.valueN)
+      )
+      println(nPlayerRow.mkString("\t"))
+      nPlayerRow
+    })
+    //    nPlayer.foreach(r => println(r.mkString("\t")))
 
+    // 为DataFrame创建模式Schema
+    val schemaN : StructType = StructType(
+      StructField("name", StringType, true):: StructField("year", IntegerType, true)::
+      StructField("age", IntegerType, true) ::  StructField("position", StringType, true)::
+        StructField("term", StringType, true) ::  StructField("gp", IntegerType, true)::
+        StructField("gs", IntegerType, true) ::  StructField("mp", DoubleType, true)::
+        StructField("FG", DoubleType, true) ::  StructField("FGA", DoubleType, true)::
+        StructField("FGP", DoubleType, true) ::  StructField("3P", DoubleType, true)::
+        StructField("3PA", DoubleType, true) ::  StructField("3PP", DoubleType, true)::
+        StructField("2P", DoubleType, true) ::  StructField("3PA", DoubleType, true)::
+        StructField("2PP", DoubleType, true) ::  StructField("eFG", DoubleType, true)::
+        StructField("FT", DoubleType, true) ::  StructField("FTA", DoubleType, true)::
+        StructField("FTP", DoubleType, true) ::  StructField("ORB", DoubleType, true)::
+        StructField("DRB", DoubleType, true) ::  StructField("TRB", DoubleType, true)::
+        StructField("AST", DoubleType, true) ::  StructField("STL", DoubleType, true)::
+        StructField("BLK", DoubleType, true) ::  StructField("TOV", DoubleType, true)::
+        StructField("PF", DoubleType, true) ::  StructField("PTS", DoubleType, true)::
+        StructField("zFG", DoubleType, true) ::  StructField("zFT", DoubleType, true)::
+        StructField("z3p", DoubleType, true) ::  StructField("zTRB", DoubleType, true)::
+        StructField("zAST", DoubleType, true) ::  StructField("zSTL", DoubleType, true)::
+        StructField("zBLK", DoubleType, true) ::  StructField("zTOV", DoubleType, true)::
+        StructField("zPTS", DoubleType, true) ::  StructField("zTOT", DoubleType, true)::
+        StructField("nFG", DoubleType, true) ::  StructField("nFT", DoubleType, true)::
+        StructField("n3P", DoubleType, true) ::  StructField("nTRB", DoubleType, true)::
+        StructField("nSTL", DoubleType, true) ::  StructField("nBLK", DoubleType, true)::
+        StructField("nTOV", DoubleType, true) ::  StructField("nPTS", DoubleType, true)::
+        StructField("nTOT", DoubleType, true) :: Nil
+    )
+    val dfPlayersT :  DataFrame = spark.createDataFrame(nPlayer, schemaN)
+    // 将所有数据保存为临时表
+    dfPlayersT.createOrReplaceTempView("tPlayers")
+    // 计算exp和zdiff、ND2FF
+    val dfPlayers : DataFrame = spark.sql(
+      "select age-min_age as exp, tPlayers.* from tPlayers join" +
+      "(select name, min(age) as min_age from tPlayers group by name) as tl" +
+      " on tPlayers.name = tl.name order by tPlayers.name, exp"
+    )
+    println("计算exp and zdiff ， ndiff")
+    dfPlayers.show()
+    // 保存为表
+    dfPlayers.createOrReplaceTempView("Players")
 
   }
 
@@ -108,7 +227,7 @@ object NBABasketball_Analysis {
     */
   def processStats (stats0: org.apache.spark.rdd.RDD[String], txtStat: Array[String],
                     bStats: scala.collection.Map[String, Double] = Map.empty,
-                    zStats: scala.collection.Map[String, Double] = Map.empty) = {
+                    zStats: scala.collection.Map[String, Double] = Map.empty): RDD[(String, Double)] = {
     //解析stats
     val stats1 = stats0.map(x => bbParse(x, bStats, zStats))
 
@@ -184,8 +303,9 @@ object NBABasketball_Analysis {
                mp: Double, stats: Array[Double], statsZ: Array[Double] = Array[Double](),
                valueZ: Double = 0, statsN: Array[Double] = Array[Double](), valueN: Double = 0, experience: Double =0)
 
-  def bbParse(line: String, bStats: collection.Map[String, Double] = Map.empty,
+  def bbParse(input: String, bStats: collection.Map[String, Double] = Map.empty,
               zStats: collection.Map[String, Double] = Map.empty) = {
+    val line = input.replace(",,", ",0,")
     // (2013,234,Jonas Jerebko\jerebjo01,PF,26,DET,64,0,741,98,208,0.471,31,74,0.419,67,134,0.500,0.546,43,59,0.729,51,124,175,39,21,6,43,85,270)
     val pieces = line.substring(1, line.length - 1).split(",")
     val year = pieces(0).toInt
@@ -195,7 +315,7 @@ object NBABasketball_Analysis {
     val team = pieces(5)
     val gp = pieces(6).toInt  // 上场次数
     val gs = pieces(7).toInt  // 首发次数
-    val mp = pieces(8).toInt  // 比赛时间（分钟）
+    val mp = pieces(8).toDouble  // 比赛时间（分钟）
     val stats = pieces.slice(9, 31).map(x => x.toDouble)
     var statsZ : Array[Double] = Array.empty
     var valueZ : Double = Double.NaN
@@ -205,7 +325,7 @@ object NBABasketball_Analysis {
     if(!bStats.isEmpty){
       // 投篮命中次数
       val fg = (stats(2) - bStats.apply(year.toString + "_FG%_avg")) * stats(1)
-      val tp = (stats(3) -bStats.apply(year.toString + "_3p_avg")) / bStats.apply(year.toString + "_3P_stdev")
+      val tp = (stats(3) -bStats.apply(year.toString + "_3P_avg")) / bStats.apply(year.toString + "_3P_stdev")
       // 罚球命中
       val ft = (stats(12) - bStats.apply(year.toString + "_FT%_avg")) * stats(11)
       val trb =(stats(15) - bStats.apply(year.toString + "_TRB_avg")) / bStats.apply(year.toString + "_TRB_stdev")
