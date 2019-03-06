@@ -72,17 +72,17 @@ Window时间窗口函数是在Spark 2.0.0 中新增的API函数，
 
 
 functions.scala代码中的API函数清单如下：  
-![表 functions.scala API 1](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_1.jpg)  
-![表 functions.scala API 2](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_2.jpg)  
-![表 functions.scala API 3](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_3.jpg)  
-![表 functions.scala API 4](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_4.jpg)  
-![表 functions.scala API 5](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_5.jpg)  
-![表 functions.scala API 6](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_6.jpg)  
-![表 functions.scala API 7](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_7.jpg)  
-![表 functions.scala API 8](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_8.jpg)  
-![表 functions.scala API 9](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_9.jpg)  
-![表 functions.scala API 10](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_10.jpg)  
-![表 functions.scala API 11](demo/business-practice/E-commerce-interactive-analysis-system/src/main/resources/IMG/fun_API_11.jpg)  
+![表 functions.scala API 1](./src/main/resources/IMG/fun_API_1.jpg)
+![表 functions.scala API 2](./src/main/resources/IMG/fun_API_2.jpeg)   
+![表 functions.scala API 3](./src/main/resources/IMG/fun_API_3.jpeg)  
+![表 functions.scala API 4](./src/main/resources/IMG/fun_API_4.jpeg)  
+![表 functions.scala API 5](./src/main/resources/IMG/fun_API_5.jpeg)  
+![表 functions.scala API 6](./src/main/resources/IMG/fun_API_6.jpeg)  
+![表 functions.scala API 7](./src/main/resources/IMG/fun_API_7.jpeg)  
+![表 functions.scala API 8](./src/main/resources/IMG/fun_API_8.jpeg)  
+![表 functions.scala API 9](./src/main/resources/IMG/fun_API_9.jpeg)  
+![表 functions.scala API 10](./src/main/resources/IMG/fun_API_10.jpeg)  
+![表 functions.scala API 11](./src/main/resources/IMG/fun_API_11.jpeg)  
 
 ```scala
 import org.apache.spark.sql.functions._
