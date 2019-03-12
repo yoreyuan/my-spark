@@ -78,7 +78,13 @@ class AdTrendStat extends Serializable{
   var adID: String = _
   var clickedCount: Long = _
 
-  override def toString = s"AdTrendStat[ _date=$_date, _hour=$_hour, _minute=$_minute, adID=$adID, clickedCount=$clickedCount]"
+  override def toString = "AdTrendStat[ _date=#1, _hour=#2, _minute=#3, adID=#4, clickedCount=#5]"
+    .replace("#1", _date)
+    .replace("#2", _hour)
+    .replace("#3", _minute)
+    .replace("#4", adID)
+    .replace("#5", clickedCount.toString)
+
 }
 
 
