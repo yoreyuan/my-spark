@@ -11,9 +11,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 模拟数据生成
  *
+ * kafka-topics.sh --create --zookeeper cdh2:2181,cdh3:2181,cdh4:2181,cdh5:2181,cdh6:2181 --partitions 2 --replication-factor 1 --topic AdClicked
+ *
+ * kafka-console-consumer.sh --bootstrap-server cdh3:9092,cdh4:9092,cdh5:9092 --from-beginning --topic AdClicked
+ *
  * Created by yore on 2019/3/8 15:33
  */
 public class MockAdClickedStats {
+
+    public static final String KAFKA_TOPIC = "AdClicked";
 
     public static void main(String[] args) {
         final Random random = new Random();
@@ -75,7 +81,7 @@ public class MockAdClickedStats {
                     System.out.println(ai.incrementAndGet() + ":\t\t" + clickedAd);
 
 
-//                    producer.send(new ProducerRecord<String, String>("my-topic", clickedAd));
+                    producer.send(new ProducerRecord<String, String>(KAFKA_TOPIC, clickedAd));
 
                     try {
                         Thread.sleep(200);

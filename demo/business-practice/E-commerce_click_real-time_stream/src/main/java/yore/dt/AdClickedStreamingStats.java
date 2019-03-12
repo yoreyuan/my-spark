@@ -32,7 +32,6 @@ import java.sql.ResultSet;
 import java.util.*;
 
 //import org.apache.spark.sql.hive.HiveContext;
-
 //import kafka.serializer.StringDecoder;
 //import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 //import org.apache.spark.streaming.kafka.KafkaUtils;
@@ -490,7 +489,7 @@ public class AdClickedStreamingStats {
                     public Tuple2<String, Long> call(Tuple2<String, String> t) throws Exception {
                         String[] splited = t._2.split("\t");
                         String timestamp = splited[0];      // yyyy-MM-dd
-                        String ip = splited[2];
+                        String ip = splited[1];
                         String userID = splited[2];
                         String adID = splited[3];
                         String province = splited[4];
@@ -667,7 +666,9 @@ public class AdClickedStreamingStats {
                         );
 //                        HiveContext hiveContext = new HiveContext(rdd.context());
 //                        DataFrame df = hiveContext.createDataFrame(rowRDD, structType);
-                        SparkSession ss = SparkSession.builder().enableHiveSupport().getOrCreate();
+                        SparkSession ss = SparkSession.builder()
+                                .config(rdd.context().conf())
+                                .enableHiveSupport().getOrCreate();
                         Dataset<Row> df = ss.createDataFrame(rowRDD, structType);
                         df.registerTempTable("topNTableSource");
 
