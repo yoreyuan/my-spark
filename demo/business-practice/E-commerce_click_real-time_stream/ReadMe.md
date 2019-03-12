@@ -63,7 +63,44 @@ No Receiver direct方式，默认分布在多个Executor上。而Receiver方式�
     
     
     
+### 关于 KafkaOffsetMonitor
+这个工具对Kafka对新版本不兼容，  
+如果需要对Kafka新版本进行检测，推荐使用**Grafana**和**Prometheus**结合进行监测，
+[grafana github](https://github.com/grafana/grafana)、
+[danielqsj/kafka_exporter](https://github.com/danielqsj/kafka_exporter)
+除了可以监控Kafka还可以监控Flink、MongoDB、Redis等，扩展起来比较方便  
   
+
+[项目的Git地址](https://github.com/quantifind/KafkaOffsetMonitor/releases)  
+[下载地址](https://github.com/quantifind/KafkaOffsetMonitor/releases/download/v0.2.0/KafkaOffsetMonitor-assembly-0.2.0.jar)  
+
+运行
+```bash
+java -cp KafkaOffsetMonitor-assembly-0.2.0.jar com.quantifind.kafka.offsetapp.OffsetGetterWeb --zk cdh3:2181,cdh4:2181,cdh5:2181,cdh6:2181  --port 20992 --refresh 5.minutes --retain 1.day
+
+# 参数说明zk ：zookeeper主机地址，如果有多个，用逗号隔开
+#   port ：应用程序端口
+#   refresh ：应用程序在数据库中刷新和存储点的频率
+#   retain ：在db中保留多长时间
+#   dbName ：保存的数据库文件名，默认为offsetapp
+
+
+
+## -- 可以编写一个启动脚本 kafka-monitor-start.sh
+java -Xms512M -Xmx512M -Xss1024K -XX:PermSize=256m -XX:MaxPermSize=512m -cp KafkaOffsetMonitor-assembly-0.2.0.jar com.quantifind.kafka.offsetapp.OffsetGetterWeb \
+--zk cdh3:2181,cdh4:2181,cdh5:2181,cdh6:2181  \
+--port 29092 \
+--refresh 5.minutes \
+--retain 1.day
+
+## 启动 
+nohup kafka-monitor-start.sh &
+
+## 查看 
+lsof -i:29092
+http://cdh4:29092
+
+```
 
 
 
