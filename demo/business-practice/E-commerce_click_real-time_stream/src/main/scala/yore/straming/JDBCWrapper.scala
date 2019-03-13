@@ -24,16 +24,22 @@ object JDBCWrapper {
 
 
 class JDBCWrapper {
-  val dbConnectionPool = new LinkedBlockingDeque[Connection]()
-  try{
-    Class.forName("com.mysql.jdbc.")
-  }catch {
-    case e : ClassNotFoundException  => e.printStackTrace()
+  // 连接池的大小
+  val POOL_SIZE : Int = PropertiesUtil.getPropInt("mysql.connection.pool.size")
+
+  val dbConnectionPool = new LinkedBlockingDeque[Connection](POOL_SIZE)
+  try
+    Class.forName(PropertiesUtil.getPropString("mysql.jdbc.driver"))
+  catch {
+    case e: ClassNotFoundException => e.printStackTrace()
   }
 
-  for(i <- 1 to 10){
+  for(i <- 0 until POOL_SIZE){
     try{
-      val conn = DriverManager.getConnection("jdbc:mysql://cdh1:3306/sparkstreaming", "root", "123456");
+      val conn = DriverManager.getConnection(
+        PropertiesUtil.getPropString("mysql.db.url"),
+        PropertiesUtil.getPropString("mysql.user"),
+        PropertiesUtil.getPropString("mysql.password"));
       dbConnectionPool.put(conn)
     }catch {
       case e : Exception => e.printStackTrace()

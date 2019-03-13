@@ -2,8 +2,8 @@ package yore.dt;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import yore.straming.PropertiesUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MockAdClickedStats {
 
-    public static final String KAFKA_TOPIC = "AdClicked";
+    public static final String KAFKA_TOPIC = PropertiesUtil.getPropString("kafka.topic.name");
 
     public static void main(String[] args) {
         final Random random = new Random();
@@ -51,7 +51,7 @@ public class MockAdClickedStats {
 //        final Producer<Integer, String> producer = new Producer<Integer, String>(producerConfig);
 
         Properties props = new Properties();
-        props.put("bootstrap.servers", "cdh3:9092,cdh4:9092,cdh5:9092");
+        props.put("bootstrap.servers", PropertiesUtil.getPropString("bootstrap.servers"));
         props.put("acks", "all");
 //        props.put("retries", 0);
 //        props.put("batch.size", 16384);

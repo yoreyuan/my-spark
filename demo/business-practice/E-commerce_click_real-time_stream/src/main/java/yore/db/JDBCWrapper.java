@@ -1,5 +1,7 @@
 package yore.db;
 
+import yore.straming.PropertiesUtil;
+
 import java.sql.*;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -8,8 +10,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Created by yore on 2019/3/6 16:02
  */
 public class JDBCWrapper {
-
-    static final Integer POOL_SIZE = 10;
+    // 连接池的大小
+    static final Integer POOL_SIZE = PropertiesUtil.getPropInt("mysql.connection.pool.size");
 
     /**
      * 连接池队列
@@ -30,12 +32,12 @@ public class JDBCWrapper {
     private static LinkedBlockingQueue<Connection> dbConnectionPool = new LinkedBlockingQueue<>(POOL_SIZE);
 
     private JDBCWrapper(){
-        for(int i =0;i<POOL_SIZE; i++){
+        for(int i =0; i< POOL_SIZE; i++){
             try {
                 Connection conn = DriverManager.getConnection(
-                        "jdbc:mysql://cdh1:3306/sparkstreaming",
-                        "root",
-                        "123456"
+                        PropertiesUtil.getPropString("mysql.db.url"),
+                        PropertiesUtil.getPropString("mysql.user"),
+                        PropertiesUtil.getPropString("mysql.password")
                 );
                 dbConnectionPool.put(conn);
             }catch (Exception e){
@@ -49,7 +51,7 @@ public class JDBCWrapper {
 
     static {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName(PropertiesUtil.getPropString("mysql.jdbc.driver"));
         }catch (ClassNotFoundException e){
             e.printStackTrace();
         }
