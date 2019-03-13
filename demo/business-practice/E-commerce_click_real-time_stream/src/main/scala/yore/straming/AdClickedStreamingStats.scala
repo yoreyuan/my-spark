@@ -6,9 +6,8 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{DataTypes, StructType}
+import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
@@ -16,7 +15,6 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.util.Random
 
 /**
   *
@@ -341,6 +339,10 @@ object AdClickedStreamingStats {
     })
 
 
+    /**
+      * 计算每天各个省份的Top5排名的广告，
+      * SELECT sum(clickedCount) clickSum,timestamp,province FROM adprovincetopn GROUP BY timestamp,province ORDER BY clickSum DESC LIMIT 5
+      */
     val updateStateByKeyDStreamrdd = updateStateByKeyDStream.transform(rdd => {
       val rowRDD = rdd.map(t => {
         val splited = t._1.split("_")
