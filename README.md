@@ -1,7 +1,7 @@
 Spark
 ---
 
-# Spark-demo
+### demo
 contains of examples, notes, and projects on Spark
 
 
