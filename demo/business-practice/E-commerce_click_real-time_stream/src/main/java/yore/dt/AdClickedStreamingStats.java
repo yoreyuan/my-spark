@@ -2,6 +2,8 @@ package yore.dt;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -27,6 +29,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import scala.Tuple2;
 import yore.db.*;
+import yore.straming.PropertiesUtil;
 
 import java.sql.ResultSet;
 import java.util.*;
@@ -51,6 +54,9 @@ public class AdClickedStreamingStats {
 
     public static void main(String[] args) throws InterruptedException {
 
+        // 设置日志的输出级别
+        Logger.getLogger("org").setLevel(Level.ERROR);
+
         /**
          * 第一步，配置SparkConf
          *  ①至少2个线程，因为spark Streaming应用程序在运行的时候，至少有一条线程用于不断地循环接收数据，
@@ -60,8 +66,11 @@ public class AdClickedStreamingStats {
          *  一般分配多少Core比较合适？根据经验，5个左右的Core最佳（一般分配为奇数个Core表现最佳，如3个、5个、7个Core等）
          *
          */
-        SparkConf conf = new SparkConf()/*.setMaster("spark://cdh3:7077")*/.setMaster("local[2]")
-                .setAppName("YORE-20190306-AdClickedStreamingStats")
+        SparkConf conf = new SparkConf()
+                .setMaster(PropertiesUtil.getPropString("spark.master"))
+                .setAppName(PropertiesUtil.getPropString("spark.app.name"))
+                // ！！必须设置，否则Kafka数据会报无法序列化的错误
+                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                 /*.setJars(new String[]{
                         "/usr/local/lib/mysql-connector-java-5.1.47.jar",
                         "/usr/local/lib/spark-streaming-kafka_2.11-1.6.1.jar"
@@ -77,8 +86,8 @@ public class AdClickedStreamingStats {
          * 使用下一个SparkStreamingContext之前需要把前面正在运行的SparkStreamingContext对象关闭掉。
          *
          */
-        JavaStreamingContext jsc = new JavaStreamingContext(conf, Durations.seconds(10));
-        jsc.checkpoint("demo/business-practice/E-commerce_click_real-time_stream/src/main/resources/checkpoint/");
+        JavaStreamingContext jsc = new JavaStreamingContext(conf, Durations.seconds(PropertiesUtil.getPropInt("spark.streaming.durations.sec")));
+        jsc.checkpoint(PropertiesUtil.getPropString("spark.checkout.dir"));
 
 
         /**
@@ -106,16 +115,16 @@ public class AdClickedStreamingStats {
          );*/
 
         /** 2.4.0版本 */
-        kafkaParams.put("bootstrap.servers", "cdh3:9092,cdh4:9092,cdh5:9092");
+        kafkaParams.put("bootstrap.servers", PropertiesUtil.getPropString("bootstrap.servers"));
         kafkaParams.put("key.deserializer", StringDeserializer.class);
         kafkaParams.put("value.deserializer", StringDeserializer.class);
-        kafkaParams.put("group.id", "use_a_separate_group_id_for_each_stream");
-        kafkaParams.put("auto.offset.reset", "latest");
-        kafkaParams.put("enable.auto.commit", false);
+        kafkaParams.put("group.id", PropertiesUtil.getPropString("group.id"));
+        kafkaParams.put("auto.offset.reset", PropertiesUtil.getPropString("auto.offset.reset"));
+        kafkaParams.put("enable.auto.commit", PropertiesUtil.getPropBoolean("enable.auto.commit"));
 
 
         Set<String> topics = new HashSet<String>(){{
-            add("AdClicked");
+            add(PropertiesUtil.getPropString("kafka.topic.name"));
         }};
 
 
@@ -125,6 +134,10 @@ public class AdClickedStreamingStats {
                 ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams)
         );
 
+        /**
+         * 如果使用KafkaOffsetMonitor监控工具，需要在这里将Offset信息更新到Zookeeper,
+         * 可以通过kafkaCluster.setConsumerOffsets
+         */
         JavaPairDStream<String, String> filteredadClickedStreaming = adClickedStreaming.transformToPair(
                 new Function<JavaRDD<ConsumerRecord<String, String>>, JavaPairRDD<String, String>>() {
                     @Override
@@ -133,7 +146,7 @@ public class AdClickedStreamingStats {
                          * 在线黑名单过滤思路：
                          * ①从数据库中获取黑名单转换成RDD，即新的RDD实例封装黑名单数据；
                          *
-                         * ②吧代表黑名单的RDD实例和BatchDuration产生的RDD进行Join操作，
+                         * ②把代表黑名单的RDD实例和BatchDuration产生的RDD进行Join操作，
                          * 准确的说，是进行leftOuterJoin操作，也就是使用BatchDuration产生的RDD和代表黑名单的RDD的实例进行leftOuterJoin操作，
                          * 如果两者都有内容，就会是true，否则就是false：我们要留下的leftOuterJoin操作结果，为false
                          *
@@ -168,13 +181,12 @@ public class AdClickedStreamingStats {
                                 new PairFunction<ConsumerRecord<String, String>, String, Tuple2<String, String>>() {
                                     @Override
                                     public Tuple2<String, Tuple2<String, String>> call(ConsumerRecord<String, String> t) throws Exception {
+//                                        System.out.println("$$$\t" + t);
                                         String userID = t.value().split("\t")[2];
                                         return  new Tuple2<String, Tuple2<String, String>>(userID, new Tuple2<String, String>(t.key(), t.value()));
                                     }
                                 }
                         );
-
-//                        JavaPairRDD<String, Tuple2<Tuple2<String, String>, Optional<Boolean>>> joined = rdd2Pair.leftOuterJoin(blackListRDD);
 
                         JavaPairRDD<String, Tuple2<Tuple2<String, String>, Optional<Boolean>>> joined = rdd2Pair.leftOuterJoin(blackListRDD);
 
@@ -204,7 +216,12 @@ public class AdClickedStreamingStats {
                     }
                 }
         );
-
+        /**
+         * 这里并不会立即执行，对弈Spark Streaming而言，具体是否触发真正的Job运行是基于设置的Duration
+         *
+         * (t.key, t.value)
+         * (null,1552460477088	192.168.112.239	7142	53	Liaoning	Shenyang)
+         */
         filteredadClickedStreaming.print();
 
 
@@ -212,12 +229,26 @@ public class AdClickedStreamingStats {
          * 第四步： 接下来就像对RDD编程一样，基于DStream进行编程，原因是DStream是RDD生产的模板（或者说类），
          * 在Spark Streaming具体发生计算前，其实质是把每个Batch的DStream操作翻译成对RDD的操作
          *
+         * Java版本有两个算子，map、mapToPair，而Scala版只有一个算子map
+         *      map 返回一个 JavaDStream[U]、
+         *      mapToPair返回一个JavaPairDStream[K2, V2]
+         *
          * 广告点击的基本数据格式：timestamp、ip、userID、addID、province、city
+         *
+         * pairs为 (timestamp_ip_userID_adID_province_city, 1L)
          */
         JavaPairDStream<String, Long> pairs = filteredadClickedStreaming.mapToPair(
+                /**
+                 * 第一个参数: 是一个元组Tuple2<String, String>，
+                 *              元组第一个参数是Kafka提供的Key值
+                 *              元组第二个参数是黑名单过滤后读入的一行点击的数据
+                 * 第二个参数: 转换后返回的key结果类型
+                 * 第三个参数: 转换后返回的value结果类型
+                 */
                 new PairFunction<Tuple2<String, String>, String, Long>() {
                     @Override
                     public Tuple2<String, Long> call(Tuple2<String, String> t) throws Exception {
+                        // (null,1552460477088	192.168.112.239	7142	53	Liaoning	Shenyang)
                         String[] splited = t._2.split("\t");
 
                         String timestamp = splited[0];      // yyyy-MM-dd
@@ -251,6 +282,9 @@ public class AdClickedStreamingStats {
 
 
         /**
+         * 数据格式为(摸个用户在某个时间、给定IP、省份和城市的某一条广告的点击总数)：
+         *      (timestamp_ip_userID_adID_province_city, x)
+         *
          * 有效点击：
          *      ① 对于复杂化的，一般都采用机器学习训练好模型直接在线进行过滤；
          *
@@ -273,8 +307,9 @@ public class AdClickedStreamingStats {
                 new Function<Tuple2<String, Long>, Boolean>() {
                     @Override
                     public Boolean call(Tuple2<String, Long> v1) throws Exception {
+                        /** 这里做了简化，简单判断当点击总数大于1，就认为是黑名单 */
                         if(1 < v1._2){
-                            // 更新黑名单的数据表
+                            //TODO 更新黑名单的数据表（DB或Redis）
                             return false;
                         }else {
                             return true;
@@ -325,6 +360,8 @@ public class AdClickedStreamingStats {
                                     userAdClicked.setAdID(splited[3]);
                                     userAdClicked.setProvince(splited[4]);
                                     userAdClicked.setCity(splited[5]);
+
+                                    userAdClickedList.add(userAdClicked);
                                 }
 
                                 final List<UserAdClicked> inserting = new ArrayList<>();
@@ -332,7 +369,9 @@ public class AdClickedStreamingStats {
 
                                 JDBCWrapper jdbcWrapper = JDBCWrapper.getJDBCInstance();
 
-                                // 点击
+                                /**
+                                 * 从Mysql数据库中查询到黑名单数据，并且将黑名单数据转换成RDD
+                                 */
                                 for(final UserAdClicked clicked : userAdClickedList){
                                     jdbcWrapper.doQuery(
                                             "SELECT COUNT(1) FROM adclicked WHERE timestamp=? AND userID=? AND adID=?",
@@ -401,7 +440,12 @@ public class AdClickedStreamingStats {
         });
 
 
-
+        /**
+         * 返回的数据格式为 JavaPairDStream<String, Long>
+         *     (timestamp_ip_userID_adID_province_city, x)
+         *     黑名单用户的广告点解记录字符串，
+         *     统计的点击总数
+         */
         JavaPairDStream<String, Long> blackListBasedOnHistory = filteredClickInBatch.filter(
                 new Function<Tuple2<String, Long>, Boolean>() {
                     @Override
@@ -430,7 +474,11 @@ public class AdClickedStreamingStats {
 
 
         /**
-         * 对黑名单整个RDD进行去重操作
+         * 对黑名单整个RDD进行去重操作,
+         * 例如：某个用户在不同时间的点击次数都超过了设定阈值，那么用户就属于黑名单，但是出现了多次，
+         * 需要将黑名单进行去重转换，然后再将黑名单持久化到MySQL数据库中
+         *
+         *
          */
         JavaDStream<String> blackListuserIDtBasedOnHistory = blackListBasedOnHistory.map(
                 new Function<Tuple2<String, Long>, String>() {
@@ -440,7 +488,6 @@ public class AdClickedStreamingStats {
                     }
                 }
         );
-
         JavaDStream<String> blackListUniqueuserIDtBasedOnHistory = blackListuserIDtBasedOnHistory.transform(
                 new Function<JavaRDD<String>, JavaRDD<String>>() {
                     @Override
@@ -535,6 +582,7 @@ public class AdClickedStreamingStats {
 
                                         while (partition.hasNext()){
                                             Tuple2<String, Long> record = partition.next();
+                                            // timestamp_adID_province_city
                                             String[] splited = record._1.split("_");
                                             AdClicked adClicked = new AdClicked();
 
@@ -616,7 +664,7 @@ public class AdClickedStreamingStats {
 
 
         /**
-         * 对广告点击进行TopN的计算，计算出每天每个省份的Top5排名的广告；
+         * 对广告点击进行TopN的计算，计算出每天每个省份的<b>Top5</b>排名的广告；
          * 因为我们直接对RDD进行操作，所以使用transform算子
          */
         updateStateByKeyDStream.transform(
@@ -627,6 +675,7 @@ public class AdClickedStreamingStats {
                                 new PairFunction<Tuple2<String, Long>, String, Long>() {
                                     @Override
                                     public Tuple2<String, Long> call(Tuple2<String, Long> t) throws Exception {
+                                        // timestamp_adID_province_city
                                         String[] splited = t._1.split("_");
                                         String timestamp = "2018-03-08";
                                         String adID = splited[1];
@@ -703,7 +752,7 @@ public class AdClickedStreamingStats {
 
                                         Set<String> set = new HashSet<>();
                                         for(AdProvinceTopN item : adProvinceTopNS){
-                                            set.add(item.getTimestamp() + " " + item.getProvince());
+                                            set.add(item.getTimestamp() + "_" + item.getProvince());
                                         }
 
                                         ArrayList<Object[]> deleteParametersList = new ArrayList<>();
@@ -750,7 +799,7 @@ public class AdClickedStreamingStats {
                         return new Tuple2<String, Long>(time + "_" + adID, 1L);
                     }
                 }
-        ).reduceByKeyAndWindow(
+        ).reduceByKeyAndWindow(     // 根据Key值及时间窗口进行汇总统计，按时间窗口长度、滑动时间窗口进行统计(聚合函数，可逆聚合函数，时间窗口，活动时间窗口)
                 new Function2<Long, Long, Long>() {
                     @Override
                     public Long call(Long v1, Long v2) throws Exception {
@@ -763,7 +812,7 @@ public class AdClickedStreamingStats {
                     }
                 },
                 Durations.minutes(30),
-                Durations.milliseconds(1)
+                Durations.minutes(1)
         ).foreachRDD(
                 new VoidFunction<JavaPairRDD<String, Long>>() {
                     @Override
