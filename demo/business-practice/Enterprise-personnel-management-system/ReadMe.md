@@ -30,7 +30,7 @@ peopleScores.json
 
 ```
 
-### 13.3 通过SparkSession床架案例开发实战上下文环境
+### 13.3 通过SparkSession框架案例开发实战上下文环境
 使用Spark 2.0的DataSet实战开发，背后会被Tungsten优化
 
 * as[U]
