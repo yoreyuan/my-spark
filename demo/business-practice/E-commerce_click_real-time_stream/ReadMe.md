@@ -60,7 +60,29 @@ No Receiver direct方式，默认分布在多个Executor上。而Receiver方式�
 
 四、No Receivers direct 方法实现完全的语义一致性，不会重复消费数据，而且保证数据一定被消费。No Receiver direct方式与Kafka进行交互，
 只有数据真正执行成功后才会记录下来。
-    
+
+
+
+### 关于Spar的算子
++ Java版
+    1. transformToPair：返回JavaPairDStream[K2, V2]、
+    2. parallelizePairs
+    3. mapToPair
+---   
+* common
+    1. leftOuterJoin 
+    2. parallelize
+    3. map
+    4. filter
+    5. reduceByKey
+    6. foreachRDD
+    7. updateStateByKey
+    8. reduceByKeyAndWindow:    根据Key值及时间窗口进行汇总统计，按时间窗口长度、滑动时间窗口进行统计
+
+***
+- Scala版
+    1. transform 
+    2. parallelize
     
     
 ### 关于 KafkaOffsetMonitor
@@ -101,28 +123,6 @@ lsof -i:29092
 http://cdh4:29092
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
