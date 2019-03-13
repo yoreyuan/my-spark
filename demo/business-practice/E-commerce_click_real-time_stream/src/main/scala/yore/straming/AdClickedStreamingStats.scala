@@ -3,6 +3,7 @@ package yore.straming
 import java.sql.ResultSet
 
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -15,6 +16,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 /**
   *
@@ -24,21 +26,27 @@ object AdClickedStreamingStats {
 
   def main(args: Array[String]): Unit = {
 
-    val conf = new SparkConf()/*.setMaster("spark://cdh3:7077")*/.setMaster("local[2]")
-      .setAppName("YORE-20190306-AdClickedStreamingStats")
+    // 设置日志的输出级别
+    Logger.getLogger("org").setLevel(Level.ERROR)
 
-    val ssc = new StreamingContext(conf, Seconds(10))
-    ssc.checkpoint("demo/business-practice/E-commerce_click_real-time_stream/src/main/resources/checkpoint/")
+    val conf = new SparkConf()
+      .setMaster(PropertiesUtil.getPropString("spark.master"))
+      .setAppName(PropertiesUtil.getPropString("spark.app.name"))
+      // ！！必须设置，否则Kafka数据会报无法序列化的错误
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+
+    val ssc = new StreamingContext(conf, Seconds(PropertiesUtil.getPropInt("spark.streaming.durations.sec")))
+    ssc.checkpoint(PropertiesUtil.getPropString("spark.checkout.dir"))
 
     val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "cdh3:9092,cdh4:9092,cdh5:9092",
+      "bootstrap.servers" -> PropertiesUtil.getPropString("bootstrap.servers"),
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
-      "group.id" -> "use_a_separate_group_id_for_each_stream",
-      "auto.offset.reset" -> "latest",
-      "enable.auto.commit" -> (false: java.lang.Boolean)
+      "group.id" -> PropertiesUtil.getPropString("group.id"),
+      "auto.offset.reset" -> PropertiesUtil.getPropString("auto.offset.reset"),
+      "enable.auto.commit" -> (PropertiesUtil.getPropBoolean("enable.auto.commit"): java.lang.Boolean)
     )
-    val topics = Array("AdClicked")
+    val topics = Array(PropertiesUtil.getPropString("kafka.topic.name"))
 
     val adClickedStreaming = KafkaUtils.createDirectStream[String, String](
       ssc,
@@ -71,6 +79,21 @@ object AdClickedStreamingStats {
       val blackListRDD: RDD[(String, Boolean)] = jsc.parallelize(blackListFromDB)
 
       val rdd2Pair = rdd.map(t => {
+        //
+        /**
+          * ConsumerRecord(
+          *   topic = AdClicked,
+          *   partition = 0,
+          *   offset = 0,
+          *   CreateTime = 1552355113636,
+          *   serialized key size = -1,
+          *   serialized value size = 55,
+          *   headers = RecordHeaders( headers = [], isReadOnly = false),
+          *   key = null,
+          *   value = 1552355113636	192.168.112.250	9266	59	Liaoning	Shenyang)
+          *  )
+          */
+//        println("$$$ \t" + t.value())
         val userID = t.value().split("\t")(2)
         (userID, t)
       })
@@ -203,10 +226,13 @@ object AdClickedStreamingStats {
       val adID = splited(3)
 
       val clickedCounttotalToday = 81
-      if (clickedCounttotalToday > 50)
+//      println(s" date=$date \t userID=$userID \t adID=$adID \t clickedCounttotalToday=$clickedCounttotalToday")
+      /*if (clickedCounttotalToday > 50){
         return true
-      else
+      } else{
         return false
+      }*/
+      true
     })
 
     // 对黑名单整个RDD进行去重操作
@@ -246,6 +272,7 @@ object AdClickedStreamingStats {
     }
 
     val updateStateByKeyDStream = filteredadClickedStreamingmappair.updateStateByKey(updatefunc)
+
     updateStateByKeyDStream.foreachRDD(rdd => {
       rdd.foreachPartition(partition => {
         val adClickedList = ListBuffer[AdClicked]()
