@@ -9,20 +9,22 @@ import java.util.Properties
   */
 object PropertiesUtil {
 
-  /**
-   *
-   * 获取配置文件Properties对象
-    *
-   * @author yore
-   * @return java.util.Properties
-   * date 2018/6/29 14:24
-   */
-  def getProperties() :Properties = {
+  private val properties: Properties = new Properties
 
-    val properties = new Properties()
-    //读取源码中resource文件夹下的my.properties配置文件
-    val reader = getClass.getResourceAsStream("/my.properties")
-    properties.load(reader)
+  /**
+    *
+    * 获取配置文件Properties对象
+    *
+    * @author yore
+    * @return java.util.Properties
+    * date 2018/6/29 14:24
+    */
+  def getProperties() :Properties = {
+    if(properties.isEmpty){
+      //读取源码中resource文件夹下的my.properties配置文件
+      val reader = getClass.getResourceAsStream("/my.properties")
+      properties.load(reader)
+    }
     properties
   }
 
