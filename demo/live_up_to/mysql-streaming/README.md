@@ -55,7 +55,7 @@ MQ选用Kafka。服务器系统为Centos7，其他环境为：jdk8、Scala 2.11�
     
 ### 1.1.2 安装Canal
 1. 下载Canal  
-    [canal v1.1.2](https://github.com/alibaba/canal/releases/tag/canal-1.1.2)
+    访问Canal的Release页[canal v1.1.2](https://github.com/alibaba/canal/releases/tag/canal-1.1.2)
     ```bash
     wget https://github.com/alibaba/canal/releases/download/canal-1.1.2/canal.deployer-1.1.2.tar.gz
     ```
@@ -145,12 +145,12 @@ MQ选用Kafka。服务器系统为Centos7，其他环境为：jdk8、Scala 2.11�
     
 * 在Mysql数据库中进行增删改查的操作，然后查看Kafka的topic为example的数据
     ```bash
-     kafka-console-consumer.sh --bootstrap-server cdh3:9092,cdh4:9092,cdh5:9092 --from-beginning --topic example
+     kafka-console-consumer.sh --bootstrap-server node1:9092,node2:9092,node3:9092 --from-beginning --topic example
     ```
     ![canal_kafka_data](src/main/resources/kafka_data.jpg)
 
 7. 关闭Canal  
-不用的时候一定要通过这个命令关闭
+不用的时候一定要通过这个命令关闭，如果是用kill或者关机，当再次启动依然会提示要先执行stop.sh脚本后才能再启动。
     ```bash
     $CANAL_HOME/bin/stop.sh
     ```
@@ -313,7 +313,7 @@ CREATE TABLE `policy_cred` (
 	policy_status varchar(2) DEFAULT NULL COMMENT '状态：0、1',
 	mor_rate decimal(20,4) DEFAULT NULL,
 	load_time datetime DEFAULT NULL,
-	PRIMARY KEY (`p_no`)
+	PRIMARY KEY (`p_num`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- 在real_result库下创建表
@@ -393,6 +393,37 @@ CREATE TABLE `real_risk` (
   "type": "UPDATE"
 }
 ```
+
+
+# 4. 查看Mysql中的结果表
+![Mysql中结果表](src/main/resources/real_risk_result.png)
+
+
+# 5. 依赖包中出现冲突的问题解决：
+例如项目中出现错误：
+```
+Exception in thread "main" java.lang.NoSuchMethodError: io.netty.buffer.PooledByteBufAllocator.<init>(ZIIIIIIIZ)V
+	at org.apache.spark.network.util.NettyUtils.createPooledByteBufAllocator(NettyUtils.java:120)
+	at org.apache.spark.network.client.TransportClientFactory.<init>(TransportClientFactory.java:106)
+	at org.apache.spark.network.TransportContext.createClientFactory(TransportContext.java:99)
+	at org.apache.spark.rpc.netty.NettyRpcEnv.<init>(NettyRpcEnv.scala:71)
+	at org.apache.spark.rpc.netty.NettyRpcEnvFactory.create(NettyRpcEnv.scala:461)
+	at org.apache.spark.rpc.RpcEnv$.create(RpcEnv.scala:57)
+	at org.apache.spark.SparkEnv$.create(SparkEnv.scala:249)
+	at org.apache.spark.SparkEnv$.createDriverEnv(SparkEnv.scala:175)
+	at org.apache.spark.SparkContext.createSparkEnv(SparkContext.scala:257)
+	at org.apache.spark.SparkContext.<init>(SparkContext.scala:424)
+	at org.apache.spark.streaming.StreamingContext$.createNewSparkContext(StreamingContext.scala:838)
+	at org.apache.spark.streaming.StreamingContext.<init>(StreamingContext.scala:85)
+	at yore.spark.M_PolicyCreditApp$.main(M_PolicyCreditApp.scala:33)
+	at yore.spark.M_PolicyCreditApp.main(M_PolicyCreditApp.scala)
+```
+
+我们可以在项目的根目录下的命令窗口中输人：`mvn dependency:tree -Dverbose> dependency.log`
+
+然后可以在项目根目录下生产一个dependency.log文件，查看这个文件，在文件中搜索 io.netty 关键字，找到其所在的依赖包：
+
+然就在canal.client将io.netty排除掉
 
 
 
