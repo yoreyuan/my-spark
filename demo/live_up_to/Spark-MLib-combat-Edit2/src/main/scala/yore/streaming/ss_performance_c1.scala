@@ -317,7 +317,7 @@ object ss_performance_c1 {
       */
     val kafkaDF = spark.readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", "192.168.100.164:9092")
+      .option("kafka.bootstrap.servers", "cdh3:9092,cdh4:9092,cdh5:9092")
       .option("subscribe", "example")
       //      .option("startingOffsets", "earliest")
       //      .option("endingOffsets", "latest")
@@ -335,9 +335,6 @@ object ss_performance_c1 {
       .filter(_.size>1)
       .map(wordsArr => Info(wordsArr(0), wordsArr(1), System.currentTimeMillis().toString) ).toDF()
     words2.createOrReplaceTempView("words2Table")
-
-
-    spark.sql("select * from words2Table")
 
 
     /*val query = spark.sql("select value,count(1) from wordsTable group by value").writeStream
