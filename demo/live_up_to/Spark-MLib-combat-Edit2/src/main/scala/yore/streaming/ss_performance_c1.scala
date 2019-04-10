@@ -344,8 +344,8 @@ object ss_performance_c1 {
 
 
     /**
-      * I love Shanghai
-      * I love Beijing
+      * 3 女
+      * 3 18
       */
     var sql = "select * from wordsTable"
     sql = "select * from wordsTable t1 inner join words2Table t2 on t1.UserID=t2.UserID"
