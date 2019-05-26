@@ -17,9 +17,10 @@
     <module>demo/business-practice/spark_redis</module>
 
     <module>demo/live_up_to/mysql-streaming</module>
-    <module>demo/live_up_to/Spark-MLib-combat-Edit2</module>
+    <module>demo/live_up_to/Spark-MLlib-combat-Edit2</module>
 
-    <module>demo/Scala_for_the_Impatient/scala-note-p1</module>
+    <module>demo/Scala/Scala_for_the_Impatient</module>
+    <module>demo/Scala/atomic-scala</module>
   </modules>
   <properties>
     <scala.version>2.11.8</scala.version>

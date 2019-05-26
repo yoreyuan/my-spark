@@ -7,6 +7,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.OutputMode
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.apache.spark.streaming.StreamingContext
 
 /**
   * nc -lk 19999
@@ -43,6 +44,23 @@ object ss_performance_c1 {
   private var host: String = "localhost"
   private var port: Int = 19999
 
+  /**
+    * val context = StreamingContext.getOrCreate(checkpointDirectory, functionToCreateContext _)
+    *
+    * streaming application 的持续运行，checkpoint 数据占用的存储空间会不断变大。需要小心设置checkpoint 的时间间隔。
+    * 设置得越小，checkpoint 次数会越多，占用空间会越大；如果设置越大，会导致恢复时丢失的数据和进度越多。
+    * 一般推荐设置为 batch duration 的5~10倍。
+    *
+    */
+  //  def functionToCreateContext(): StreamingContext = {
+//    val ssc = new StreamingContext()
+//    val lines = ssc.socketTextStream()
+//      ...
+//    ssc.checkpoint(checkpointDirectory)
+//    ssc
+//
+//  }
+
   def main(args: Array[String]): Unit = {
 
     // 设置日志的输出级别
@@ -53,6 +71,8 @@ object ss_performance_c1 {
       .appName("Structure Streaming Performance")
       .master("local")
       .getOrCreate()
+
+
 
     /**
       * 数据源为 Socket

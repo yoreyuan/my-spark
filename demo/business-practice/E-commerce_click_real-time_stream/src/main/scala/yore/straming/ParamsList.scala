@@ -1,7 +1,5 @@
 package yore.straming
 
-import java.util.Date
-
 /**
   *
   * Created by yore on 2019/3/5 17:40
@@ -98,12 +96,6 @@ object abc {
 
 
     println("a = " + params1 )
-
-
-    for(i <- 0 until 10){
-      println(i)
-    }
-
 
   }
 }

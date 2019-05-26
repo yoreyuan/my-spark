@@ -27,12 +27,14 @@ object M_PolicyCreditApp {
       .setAppName(PropertiesUtil.getPropString("spark.app.name"))
       // ！！必须设置，否则Kafka数据会报无法序列化的错误
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+//        .set("log4j.rootCategory", "ERROR, console")
     //如果环境中已经配置HADOOP_HOME则可以不用设置hadoop.home.dir
-    System.setProperty("hadoop.home.dir", "/Users/yoreyuan/soft/hadoop-2.9.2")
+//    System.setProperty("hadoop.home.dir", "/Users/yoreyuan/soft/hadoop-2.9.2")
 
     val ssc = new StreamingContext(conf,  Seconds(PropertiesUtil.getPropInt("spark.streaming.durations.sec").toLong))
     ssc.sparkContext.setLogLevel("ERROR")
-    ssc.checkpoint(PropertiesUtil.getPropString("spark.checkout.dir"))
+
+//    ssc.checkpoint(PropertiesUtil.getPropString("spark.checkout.dir"))
 
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> PropertiesUtil.getPropString("bootstrap.servers"),

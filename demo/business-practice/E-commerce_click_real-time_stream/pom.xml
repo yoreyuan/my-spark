@@ -12,6 +12,10 @@
 
     <!-- 电商广告点击大数据实时流处理系统案例 -->
     <artifactId>E-commerce_click_real-time_stream</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>../Communications-Operator-apply</module>
+    </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -146,23 +150,17 @@
         <!-- spark-mllib-local -->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-mllib_2.11</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-        <!-- spark-mllib-local -->
-        <dependency>
-            <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib-local_2.11</artifactId>
             <version>${spark.version}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib-local_2.11</artifactId>
             <version>${spark.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
         <!-- spark-repl -->
         <dependency>
             <groupId>org.apache.spark</groupId>

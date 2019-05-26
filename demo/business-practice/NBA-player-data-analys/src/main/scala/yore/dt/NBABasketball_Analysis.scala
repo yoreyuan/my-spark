@@ -40,13 +40,14 @@ object NBABasketball_Analysis {
     val conf = new SparkConf().setMaster(masterUrl)
       .setAppName("NBA-player-data-analys")
     val spark = SparkSession.builder().config(conf)
-      .config("spark.sql.warehouse.dir", "spark-warehouse")
+      .appName("NBA-player-data-analys")
+//      .config("spark.sql.warehouse.dir", "spark-warehouse")
 //      .enableHiveSupport()
       .getOrCreate()
     val sc = spark.sparkContext
 
     import spark.implicits._
-    import org.apache.spark.sql.functions._
+//    import org.apache.spark.sql.functions._
 
     // Delete if the tmp directory exists
     FileSystem.get(new Configuration()).delete(new Path(data_tmp), true)

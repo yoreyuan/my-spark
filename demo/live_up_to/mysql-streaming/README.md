@@ -426,4 +426,3 @@ Exception in thread "main" java.lang.NoSuchMethodError: io.netty.buffer.PooledBy
 然就在canal.client将io.netty排除掉
 
 
-
