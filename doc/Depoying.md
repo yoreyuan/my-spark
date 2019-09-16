@@ -118,7 +118,7 @@ $SPARK_HOME/sbin/start-history-server.sh
 ### 3.1.9 验证
 在浏览器中查看spark的ui界面 
 * master： [ http://cdh6:8082/ ](http://cdh6:8082/)
-* worker:  [ http://cdh6:8083/ ](http://cdh6:8082/)
+* worker:  [ http://cdh6:8083/ ](http://cdh6:8083/)
 * History: [ http://cdh6:18081/ ](http://cdh6:18081/)
 
 
@@ -135,16 +135,22 @@ $SPARK_HOME/sbin/stop-history-server.sh
 # 6 [Running Spark on Kubernetes](http://spark.apache.org/docs/latest/running-on-kubernetes.html)
 
 
+***********
+# 和Hive集成
+将Hive的配置文件软连到Spark的classpath中（比如Spark的配置文件下）
+```bash
+ln -s $HIVE_HOME/conf/hive-site.xml $SPARK_HOME/conf/
 
+```
 
+然后启动`$SPARK_HOME/bin/spark-sql`时打印的日志可以看到如下日志，说明Spark和Hive是联通的，否则Spark会单独创建一个临时的仓库：
+```
+INFO  SharedState:54 - loading hive config file: file:/opt/spark-2.3.2-bin-hadoop2.7/conf/hive-site.xml
+INFO  SharedState:54 - spark.sql.warehouse.dir is not set, but hive.metastore.warehouse.dir is set. Setting spark.sql.warehouse.dir to the value of hive.metastore.warehouse.dir ('/user/hive/warehouse').
+INFO  SharedState:54 - Warehouse path is '/user/hive/warehouse'.
+```
 
-
-
-
-
-
-
-
-
+# 和Carbon Data集成
+可以参考我的这篇blog [CarbonData安装和使用](https://blog.csdn.net/github_39577257/article/details/100130704)
 
 
