@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML version="4.2" xmlns="http://www.dmg.org/PMML-4_2">
+    <Header description="linear SVM">
+        <Application name="Apache Spark MLlib"/>
+        <Timestamp>2016-11-16T22:17:47</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="4">
+        <DataField name="field_0" optype="continuous" dataType="double"/>
+        <DataField name="field_1" optype="continuous" dataType="double"/>
+        <DataField name="field_2" optype="continuous" dataType="double"/>
+        <DataField name="target" optype="categorical" dataType="string"/>
+    </DataDictionary>
+    <RegressionModel modelName="linear SVM" functionName="classification" normalizationMethod="none">
+        <MiningSchema>
+            <MiningField name="field_0" usageType="active"/>
+            <MiningField name="field_1" usageType="active"/>
+            <MiningField name="field_2" usageType="active"/>
+            <MiningField name="target" usageType="target"/>
+        </MiningSchema>
+        <RegressionTable intercept="0.0" targetCategory="1">
+            <NumericPredictor name="field_0" coefficient="-0.36682158807862086"/>
+            <NumericPredictor name="field_1" coefficient="3.8787681305811765"/>
+            <NumericPredictor name="field_2" coefficient="-1.6134308474471166"/>
+        </RegressionTable>
+        <RegressionTable intercept="0.0" targetCategory="0"/>
+    </RegressionModel>
+</PMML>
