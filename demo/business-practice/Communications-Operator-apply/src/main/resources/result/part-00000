@@ -1,0 +1,10 @@
+2016-12-15 00:02:55,619 [ERROR] [MQBillPaymentBusiness.java] : 282 -- 流水号:20**60；MQ账单支付业务的时间： >>> Payment >>> [419]ms
+2016-12-15 00:02:59,228 [ERROR] [MQBillCheckBusiness.java] : 233 -- 流水号:20**66；MQ校验订单业务的时间: >>> CheckBill >>> [147]ms
+2016-12-15 00:02:59,525 [ERROR] [MQBillPaymentBusiness.java] : 282 -- 流水号:20**67；MQ账单支付业务的时间: >>> Payment >>> [287]ms
+2016-12-15 00:03:21,417 [DEBUG] [MQQueryInvoiceBusiness.java] : 98 -- 流水号:15c*59de61576,queryInvoice response:<soap:Envelope xmlns:soap="http://*/soap/envelope/"><soap:Body><ns2:queryInvoiceResponse xmlns:ns2="http://*.sh.cn/"><response><head><errCode>00000001</errCode><errDesc>*t.com.exception.ApplicationException: 账户不存在或当前不是有效状态
+2016-12-15 00:03:32,855 [DEBUG] [MQQueryInvoiceBusiness.java] : 98 -- 流水号:1156*4f70,queryInvoice response:<soap:Envelope xmlns:soap="http://*/envelope/"><soap:Body><ns2:query InvoiceResponse xmlns:ns2="http://*.sh.cn/"><response><head><errCode>00000001</errCode><errDesc>*.exception.ApplicationException: 账户不存在或当前不是有效状态
+2016-12-15 00:03:33,183 [ERROR] [MQQueryAccIdBusiness.java] : 53 -- 流水号:1008*5643；MQ条码号查询业务的时间: >>> QueryAccExternalId >>> [247]ms
+2016-12-15 21:31:52,015 [WARN] [MQQueryAccountNoBusiness.java] : 278 -- 流水号:1008@@27,queryAccountNo response:<soap:Envelope xmlns:soap="http://@@/soap/envelope/"><soap:Body><ns2:query queryAccountNoResponse xmlns:ns2="http://@@.sh.cn/"><response><head><errCode>00000001</errCode><errDesc>java.lang.Exception: 设备号对应账号为空
+2017-01-15 17:41:21,654 [ERROR] [MQBillCheckBusiness.java] : 233 -- 流水号:20170@@636；MQ校验订单业务的时间: >>> CheckBill >>> [554]ms
+2017-01-15 17:47:56,242 [ERROR] [MQAuthOperateBusiness.java] : 45 -- 去UAM认证的业务的时间: >>> Auth >>> [31]ms
+2017-01-15 17:47:58,430 [DEBUG] [MQQueryInvoiceBusiness.java] : 498 -- 流水号:372@@8698,queryInvoice response:<soap:Envelope xmlns:soap="http://@@/soap/envelope/"><soap:Body><ns2:query InvoiceResponse xmlns:ns2="http://@@.sh.cn/"><response><head><errCode>00000001</errCode><errDesc>com.@@.exception.ApplicationException: 账户不存在或当前不是有效状态

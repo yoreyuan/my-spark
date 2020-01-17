@@ -1,7 +1,7 @@
 
 
 ### 数据集准备
-数据使用[我们使用的是MovieLens 100k数据集](https://link.jianshu.com/?t=http://files.grouplens.org/datasets/movielens/ml-100k.zip),
+数据使用[我们使用的是MovieLens 100k数据集](http://files.grouplens.org/datasets/movielens/ml-100k.zip),
 它包含了100000条用户对电影的点评（1分到5分）  
 
 user.data  

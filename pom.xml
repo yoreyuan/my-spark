@@ -21,6 +21,7 @@
 
     <module>demo/Scala/Scala_for_the_Impatient</module>
     <module>demo/Scala/atomic-scala</module>
+    <module>demo/live_up_to/spark-on-HBase</module>
   </modules>
   <properties>
     <scala.version>2.11.8</scala.version>
