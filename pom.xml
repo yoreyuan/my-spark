@@ -22,8 +22,14 @@
     <module>demo/Scala/Scala_for_the_Impatient</module>
     <module>demo/Scala/atomic-scala</module>
     <module>demo/live_up_to/spark-on-HBase</module>
+    <module>demo/live_up_to/conn-db</module>
   </modules>
+
   <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <scala.version>2.11.8</scala.version>
     <hadoop-version>2.6.4</hadoop-version>
     <log4j-version>1.2.17</log4j-version>
@@ -32,6 +38,7 @@
     <hbase.version>1.2.1</hbase.version>
     <!-- hive的版本 -->
     <hive.version>2.1.1</hive.version>
+    <spark.version>2.4.0</spark.version>
   </properties>
 
   <repositories>
@@ -74,7 +81,7 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_2.11</artifactId>
-      <version>2.4.0</version>
+      <version>${spark.version}</version>
       <!--<exclusions>
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
@@ -86,19 +93,19 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-streaming_2.11</artifactId>
-      <version>2.4.0</version>
+      <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
     <!-- spark-sql -->
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_2.11</artifactId>
-      <version>2.4.0</version>
+      <version>${spark.version}</version>
     </dependency>
 
 
     <!-- ***** 引入log4j ***** -->
-    <dependency>
+<!--    <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>${log4j-version}</version>
@@ -120,7 +127,7 @@
           <artifactId>jmxri</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency>-->
 
     <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-client -->
     <dependency>
