@@ -1,4 +1,39 @@
-demo/resources-data/ml-10M100K/ratings.dat
+# Compiled class file
+*.class
+
+# Package Files #
+*.jar
+*.tar.gz
+.gz
+*.tgz
+*.rar
+
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+**/target/
+**/*.iml
+.*.swp
+.DS_Store
+.git
+.hg
+.svn
+.settings
+.tmp
+.vim
+logs/*
 target/
+demo/resources-data/ml-10M100K/ratings.dat
 ml-20m/
 ml-20m.zip
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+!**/lib/*.jar
+
+### VS Code ###
+.vscode/
+

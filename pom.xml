@@ -1,28 +1,32 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>yore</groupId>
-  <artifactId>My_spark</artifactId>
+  <artifactId>yore-spark</artifactId>
   <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
-  <inceptionYear>2008</inceptionYear>
+
   <modules>
-    <module>demo/business-practice/Communications-Operator-apply</module>
-    <module>demo/business-practice/E-commerce_click_real-time_stream</module>
-    <module>demo/business-practice/E-commerce-interactive-analysis-system</module>
-    <module>demo/business-practice/Enterprise-personnel-management-system</module>
-    <module>demo/business-practice/Marriage_and_SocialNetwork_analys</module>
-    <module>demo/business-practice/movie-rating</module>
-    <module>demo/business-practice/movie-rating-synthesis</module>
-    <module>demo/business-practice/NBA-player-data-analys</module>
-    <module>demo/business-practice/spark_redis</module>
+    <module>case/business-trilogy/Communications-Operator-apply</module>
+    <module>case/business-trilogy/E-commerce_click_real-time_stream</module>
+    <module>case/business-trilogy/E-commerce-interactive-analysis-system</module>
+    <module>case/business-trilogy/Enterprise-personnel-management-system</module>
+    <module>case/business-trilogy/Marriage_and_SocialNetwork_analys</module>
+    <module>case/business-trilogy/movie-rating</module>
+    <module>case/business-trilogy/movie-rating-synthesis</module>
+    <module>case/business-trilogy/NBA-player-data-analys</module>
+
+    <module>case/Scala/scala-for-the-Impatient</module>
+    <module>case/Scala/atomic-scala</module>
 
     <module>demo/live_up_to/mysql-streaming</module>
     <module>demo/live_up_to/Spark-MLlib-combat-Edit2</module>
-
-    <module>demo/Scala/Scala_for_the_Impatient</module>
-    <module>demo/Scala/atomic-scala</module>
     <module>demo/live_up_to/spark-on-HBase</module>
     <module>demo/live_up_to/conn-db</module>
+    <module>demo/live_up_to/spark_redis</module>
+
   </modules>
 
   <properties>
@@ -36,7 +40,6 @@
     <commons-lang3-version>3.6</commons-lang3-version>
     <junit-version>4.11</junit-version>
     <hbase.version>1.2.1</hbase.version>
-    <!-- hive的版本 -->
     <hive.version>2.1.1</hive.version>
     <spark.version>2.4.0</spark.version>
   </properties>
@@ -136,16 +139,11 @@
       <version>2.7.7</version>
     </dependency>
 
-
-
-
-
-
   </dependencies>
 
   <build>
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
+    <!--<sourceDirectory>src/main/scala</sourceDirectory>
+    <testSourceDirectory>src/test/scala</testSourceDirectory>-->
     <plugins>
       <plugin>
         <groupId>org.scala-tools</groupId>

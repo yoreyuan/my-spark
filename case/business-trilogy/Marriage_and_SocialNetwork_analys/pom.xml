@@ -2,18 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>yore</groupId>
+        <artifactId>yore-spark</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>yore</groupId>
-    <artifactId>Spark-MLlib-combat-Edit2</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <description>Spark 机器学习实战</description>
+
+    <!-- Spark GraphX实现婚恋社交网络多维度分析 -->
+    <artifactId>Marriage_and_SocialNetwork_analys</artifactId>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
         <scala.version>2.11.8</scala.version>
         <spark.version>2.4.0</spark.version>
         <jedis.version>2.9.0</jedis.version>
@@ -50,18 +55,6 @@
             <version>${spark.version}</version>
         </dependency>
 
-        <!--<dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql-kafka-0-10_2.11</artifactId>
-            <version>${spark.version}</version>
-            &lt;!&ndash;<scope>provided</scope>&ndash;&gt;
-        </dependency>-->
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
-        </dependency>
 
     </dependencies>
 
